@@ -129,6 +129,7 @@ class SpectreCNV:
         self.cnv_analysis.cnv_result_vcf()
         self.logger.info("Result plot in progress")
         self.cnv_analysis.cnv_plot()
+        self.cnv_analysis.cnv_plot_genome()
         # End
         self.logger.info(f"Output dir: {self.spectre_args.out_dir}")
         self.logger.info(f"Done with sample {self.sample_id}")
