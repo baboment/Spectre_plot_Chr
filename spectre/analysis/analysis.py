@@ -776,6 +776,8 @@ class CNVAnalysis(object):
                                               self.cnv_calls_list[each_chromosome], [lower_bound, upper_bound])
 
     def cnv_plot_genome(self, methode=""):
+        """Generate genome-wide CNV coverage plot."""
+
         coverage_per_chr = {}
         cnv_per_chr = {}
         chr_lengths = {}
