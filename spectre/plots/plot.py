@@ -75,11 +75,11 @@ class CNVPlot:
         self.main_plot.plot(np.array([1, stats.chromosome_len]), np.array([stats.average, stats.average]),
                             linewidth='1', color="#000000")
         if bounds is not None:
-            [upperb, lowerb] = bounds if len(bounds) == 2 else [np.NaN, np.NaN]
+            lowerb, upperb = bounds if len(bounds) == 2 else (np.NaN, np.NaN)
             self.main_plot.plot(np.array([1, stats.chromosome_len]), np.array([lowerb, lowerb]),
-                                linewidth='1', color="#dd3497")
+                                linewidth='1', color="#1a9850")
             self.main_plot.plot(np.array([1, stats.chromosome_len]), np.array([upperb, upperb]),
-                                linewidth='1', color="#dd3497")
+                                linewidth='1', color="#d73027")
         self.figure.suptitle(f'{self.file_prefix} chromosome: {current_chromosome}')
         self.figure.savefig(f'{self.output_directory}/img/{self.file_prefix}_plot_cnv_{current_chromosome}.png', dpi=300)
         self.logger.info(f'Plot saved: img/{self.file_prefix}_plot_cnv_{current_chromosome}.png')
@@ -92,9 +92,10 @@ class GenomeCNVPlot:
     def __init__(self, as_dev: bool = False):
         logging.getLogger('matplotlib.font_manager').disabled = True
         self.logger = logger.setup_log(__name__, as_dev)
-        vy7ysa-codex/create-genome-wide-cnv-plot-routine
-        self.figure = plot_engine.figure(figsize=(16, 6))
-        self.figure = plot_engine.figure(figsize=(12, 4))
+        # use a wide figure for better readability of genome-wide plots
+        self.figure = plot_engine.figure(figsize=(18, 6))
+            while tick_val <= length:
+            lowerb, upperb = bounds
         main
         gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
         self.main_plot = plot_engine.subplot(gs[0])
