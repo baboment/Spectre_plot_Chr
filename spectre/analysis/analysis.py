@@ -16,6 +16,7 @@ from spectre.analysis.coverage_stats import CoverageStatistics
 from spectre.classes.loh_candidate import MergeCNVLoH
 from spectre.plots.plot import CNVPlot
 from spectre.plots.plot import CoveragePlot
+from spectre.plots.plot import GenomeCNVPlot
 from spectre.util.cnv_id import CNV_ID
 from spectre.util.metadata.metadataCollector import FastaRef
 
@@ -773,6 +774,27 @@ class CNVAnalysis(object):
                                               {"pos": chr_cov_data.positions,
                                                "cov": chr_cov_data.normalized_cov_ploidy},
                                               self.cnv_calls_list[each_chromosome], [lower_bound, upper_bound])
+
+    def cnv_plot_genome(self, methode=""):
+        coverage_per_chr = {}
+        cnv_per_chr = {}
+        chr_lengths = {}
+        for each_chromosome in self.coverage_analysis.keys():
+            chr_cov_data = self.coverage_analysis[each_chromosome]["cov_data"]
+            coverage_per_chr[each_chromosome] = {
+                "pos": chr_cov_data.positions,
+                "cov": chr_cov_data.normalized_cov_ploidy,
+            }
+            cnv_per_chr[each_chromosome] = self.cnv_calls_list[each_chromosome]
+            if each_chromosome in self.genome_info["chr_lengths"]:
+                chr_lengths[each_chromosome] = self.genome_info["chr_lengths"][each_chromosome]
+            else:
+                chr_lengths[each_chromosome] = chr_cov_data.positions[-1] if len(chr_cov_data.positions) > 0 else 0
+
+        new_plot_device = GenomeCNVPlot()
+        new_plot_device.output_directory = self.output_directory
+        new_plot_device.file_prefix = methode + self.sample_id
+        new_plot_device.plot_genome(coverage_per_chr, cnv_per_chr, chr_lengths)
 
     def get_cnv_metrics(self, refined_cnvs: bool = False):
         """
