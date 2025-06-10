@@ -92,7 +92,10 @@ class GenomeCNVPlot:
     def __init__(self, as_dev: bool = False):
         logging.getLogger('matplotlib.font_manager').disabled = True
         self.logger = logger.setup_log(__name__, as_dev)
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
         self.figure = plot_engine.figure(figsize=(16, 6))
+        self.figure = plot_engine.figure(figsize=(12, 4))
+        main
         gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
         self.main_plot = plot_engine.subplot(gs[0])
         self.candidates_plot = plot_engine.subplot(gs[1])
@@ -103,8 +106,11 @@ class GenomeCNVPlot:
         self.file_prefix = "test"
         self.output_directory = "./"
 
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
     def plot_genome(self, coverage_per_chr: dict, cnv_per_chr: dict, chr_lengths: dict,
                     baseline: float = 2.0, bounds: list | None = None):
+    def plot_genome(self, coverage_per_chr: dict, cnv_per_chr: dict, chr_lengths: dict):
+        main
         """Create genome wide CNV plot.
 
         Parameters
@@ -128,8 +134,10 @@ class GenomeCNVPlot:
         xticks = []
         labels = []
         boundaries = []
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
         scale_ticks = []
         scale_labels = []
+        main
 
         offset = 0
         for chrom in chromosomes:
@@ -142,11 +150,13 @@ class GenomeCNVPlot:
             labels.append(chrom)
             offset += length
             boundaries.append(offset)
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
             tick_val = 1
             while tick_val < length:
                 scale_ticks.append(offset - length + tick_val)
                 scale_labels.append(f"{tick_val}")
                 tick_val *= 10
+        main
 
         all_pos = np.concatenate(all_pos)
         all_cov = np.concatenate(all_cov)
@@ -155,6 +165,7 @@ class GenomeCNVPlot:
         self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
         # baseline and bounds
         genome_end = boundaries[-1]
         self.main_plot.plot(np.array([0, genome_end]), np.array([baseline, baseline]),
@@ -166,6 +177,8 @@ class GenomeCNVPlot:
             self.main_plot.plot(np.array([0, genome_end]), np.array([upperb, upperb]),
                                 linewidth='1', color="#d73027")
 
+
+        main
         # plot CNV segments
         offset = 0
         for chrom in chromosomes:
@@ -185,8 +198,10 @@ class GenomeCNVPlot:
 
         self.main_plot.set_xticks(xticks)
         self.main_plot.set_xticklabels(labels, rotation=90, fontsize=6)
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
         self.candidates_plot.set_xticks(scale_ticks)
         self.candidates_plot.set_xticklabels(scale_labels, rotation=90, fontsize=6)
+        main
 
         self.figure.tight_layout()
         output_path = f'{self.output_directory}/img/{self.file_prefix}_plot_cnv_genome.png'

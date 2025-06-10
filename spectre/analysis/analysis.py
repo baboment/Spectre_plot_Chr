@@ -794,10 +794,13 @@ class CNVAnalysis(object):
         new_plot_device = GenomeCNVPlot()
         new_plot_device.output_directory = self.output_directory
         new_plot_device.file_prefix = methode + self.sample_id
+        vy7ysa-codex/create-genome-wide-cnv-plot-routine
         bounds = [self.lower_2n_threshold, self.upper_2n_threshold]
         new_plot_device.plot_genome(coverage_per_chr, cnv_per_chr, chr_lengths,
                                     baseline=self.spectre_args.ploidy,
                                     bounds=bounds)
+        new_plot_device.plot_genome(coverage_per_chr, cnv_per_chr, chr_lengths)
+        main
 
     def get_cnv_metrics(self, refined_cnvs: bool = False):
         """
