@@ -188,8 +188,21 @@ class GenomeCNVPlot:
         window_cov = np.concatenate(window_cov)
 
         # plot coverage and 1 Mb window average
-        self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
-        self.main_plot.plot(all_pos, window_cov, color="#1a9850", linewidth='1')
+        # ensure the smoothed average is visible on top of the raw coverage
+        self.main_plot.plot(
+            all_pos,
+            all_cov,
+            color=self.coverage_color,
+            linewidth="0.5",
+            zorder=1,
+        )
+        self.main_plot.plot(
+            all_pos,
+            window_cov,
+            color="#1a9850",
+            linewidth="1",
+            zorder=2,
+        )
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
         # optional baseline across the genome and bounds
