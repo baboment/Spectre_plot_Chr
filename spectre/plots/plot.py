@@ -93,7 +93,8 @@ class GenomeCNVPlot:
     def __init__(self, as_dev: bool = False):
         logging.getLogger('matplotlib.font_manager').disabled = True
         self.logger = logger.setup_log(__name__, as_dev)
-        self.figure = plot_engine.figure(figsize=(16, 6))
+        # wider figure for genome wide plots
+        self.figure = plot_engine.figure(figsize=(32, 6))
         gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
         self.main_plot = plot_engine.subplot(gs[0])
         self.candidates_plot = plot_engine.subplot(gs[1])
@@ -138,6 +139,7 @@ class GenomeCNVPlot:
 
         all_pos = []
         all_cov = []
+        window_cov = []
         xticks = []
         labels = []
         boundaries = []
@@ -149,11 +151,20 @@ class GenomeCNVPlot:
 
         offset = 0
         for chrom in chromosomes:
-            pos = np.array(coverage_per_chr[chrom]["pos"]) + offset
+            raw_pos = np.array(coverage_per_chr[chrom]["pos"])
             cov = np.array(coverage_per_chr[chrom]["cov"])
+            step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
+            win_green = max(1, int(round(100000 / step)))
+            win_blue = max(1, int(round(20000 / step)))
+
+            sm_cov = np.convolve(cov, np.ones(win_blue) / win_blue, mode="same")
+            green_cov = np.convolve(cov, np.ones(win_green) / win_green, mode="same")
+
+            pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)
             all_pos.append(pos)
-            all_cov.append(cov)
+            all_cov.append(sm_cov)
+            window_cov.append(green_cov)
             length = chr_lengths.get(chrom, pos[-1] if len(pos) > 0 else 0)
             xticks.append(offset + length / 2)
             labels.append(chrom)
@@ -163,25 +174,27 @@ class GenomeCNVPlot:
             tick = 0
             while tick <= length:
                 scale_ticks.append(start_off + tick)
-                if tick % 100000000 == 0:
-                    scale_labels.append(f"{int(tick/1000000)}")
+                if tick != 0 and tick % 100000000 == 0:
+                    scale_labels.append(f"{int(tick/1000000)}m")
                 else:
                     scale_labels.append("")
                 tick += 20000000
 
         all_pos = np.concatenate(all_pos)
         all_cov = np.concatenate(all_cov)
+        window_cov = np.concatenate(window_cov)
 
-        # plot coverage
+        # plot coverage and 100 kb window average
         self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
+        self.main_plot.plot(all_pos, window_cov, color="#1a9850", linewidth='1')
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
-        # baseline (genome average) and bounds
+        # optional baseline across the genome and bounds
         genome_end = boundaries[-1]
-        if baseline is None:
-            baseline = float(np.nanmean(all_cov))
-        self.main_plot.plot(np.array([0, genome_end]), np.array([baseline, baseline]),
-                            linewidth='1', color="#1a9850")
+        if baseline is not None:
+            self.main_plot.plot(np.array([0, genome_end]),
+                                np.array([baseline, baseline]),
+                                linewidth='1', color="#000000")
         if bounds is not None and len(bounds) == 2:
             upperb, lowerb = bounds[1], bounds[0]
             self.main_plot.plot(np.array([0, genome_end]), np.array([lowerb, lowerb]),
@@ -194,6 +207,7 @@ class GenomeCNVPlot:
         for chrom in chromosomes:
             length = chr_lengths.get(chrom, 0)
             chr_mean = chr_means.get(chrom, np.nan)
+            # chromosome baseline represented as a black line
             self.main_plot.plot(np.array([offset, offset + length]),
                                 np.array([chr_mean, chr_mean]),
                                 linewidth='1', color="#000000")
