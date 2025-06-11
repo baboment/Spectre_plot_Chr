@@ -150,7 +150,7 @@ class GenomeCNVPlot:
         chr_means = {}
 
         offset = 0
-        gap_size = 10000000  # add constant space between chromosomes
+        gap_size = 0  # no space between chromosomes
         for chrom in chromosomes:
             raw_pos = np.array(coverage_per_chr[chrom]["pos"])
             cov = np.array(coverage_per_chr[chrom]["cov"])
@@ -182,7 +182,6 @@ class GenomeCNVPlot:
                 else:
                     scale_labels.append("")
                 tick += 20000000
-            offset += gap_size
 
         all_pos = np.concatenate(all_pos)
         all_cov = np.concatenate(all_cov)
@@ -190,7 +189,7 @@ class GenomeCNVPlot:
 
         # plot coverage and 100 kb window average
         self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
-        self.main_plot.plot(all_pos, window_cov, color="#1a9850", linewidth='1')
+        self.main_plot.scatter(all_pos, window_cov, color="#1a9850", s=3)
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
         # optional baseline across the genome and bounds
@@ -205,6 +204,11 @@ class GenomeCNVPlot:
                                 linewidth='1', color="#d73027")
             self.main_plot.plot(np.array([0, genome_end]), np.array([upperb, upperb]),
                                 linewidth='1', color="#d73027")
+
+        self.main_plot.set_xlim(left=0, right=genome_end)
+        self.candidates_plot.set_xlim(left=0, right=genome_end)
+        self.main_plot.margins(x=0)
+        self.candidates_plot.margins(x=0)
 
         # plot CNV segments and chromosome averages
         offset = 0
@@ -223,17 +227,16 @@ class GenomeCNVPlot:
                     self.candidates_plot.plot(np.array([start, end]), np.array([0, 0]),
                                               linewidth='5', color=cnv_color)
             offset += length
-            offset += gap_size
 
         # draw chromosome boundaries
         for boundary in boundaries[:-1]:
-            self.main_plot.axvline(boundary, color="grey", linewidth=0.5)
-            self.candidates_plot.axvline(boundary, color="grey", linewidth=0.5)
+            self.main_plot.axvline(boundary, color="#303030", linewidth=1)
+            self.candidates_plot.axvline(boundary, color="#303030", linewidth=1)
 
         self.main_plot.set_xticks(xticks)
         self.main_plot.set_xticklabels(labels, rotation=90, fontsize=6)
         self.candidates_plot.set_xticks(scale_ticks)
-        self.candidates_plot.set_xticklabels(scale_labels, rotation=90, fontsize=6)
+        self.candidates_plot.set_xticklabels(scale_labels, rotation=45, fontsize=6)
 
         self.figure.tight_layout()
         output_path = f'{self.output_directory}/img/{self.file_prefix}_plot_cnv_genome.png'
