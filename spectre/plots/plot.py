@@ -3,6 +3,7 @@ from spectre.util import logger
 import matplotlib.pyplot as plot_engine
 from matplotlib import gridspec
 import numpy as np
+from typing import Optional
 
 
 class CoveragePlot:
@@ -104,7 +105,7 @@ class GenomeCNVPlot:
         self.output_directory = "./"
 
     def plot_genome(self, coverage_per_chr: dict, cnv_per_chr: dict, chr_lengths: dict,
-                    baseline: float = 2.0, bounds: list | None = None):
+                    baseline: float = 2.0, bounds: Optional[list] = None):
         """Create genome wide CNV plot.
 
         Parameters
@@ -115,6 +116,10 @@ class GenomeCNVPlot:
             Dictionary with chromosome -> list[CNVCandidate].
         chr_lengths : dict
             Dictionary with chromosome lengths.
+        baseline : float, optional
+            Reference coverage baseline, by default ``2.0``.
+        bounds : list, optional
+            Lower and upper coverage bounds, used for plotting thresholds.
         """
 
         if len(coverage_per_chr) == 0:
