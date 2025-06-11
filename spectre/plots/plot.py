@@ -150,6 +150,7 @@ class GenomeCNVPlot:
         chr_means = {}
 
         offset = 0
+        gap_size = 10000000  # add constant space between chromosomes
         for chrom in chromosomes:
             raw_pos = np.array(coverage_per_chr[chrom]["pos"])
             cov = np.array(coverage_per_chr[chrom]["cov"])
@@ -174,11 +175,14 @@ class GenomeCNVPlot:
             tick = 0
             while tick <= length:
                 scale_ticks.append(start_off + tick)
-                if tick != 0 and tick % 100000000 == 0:
+                if tick == 0:
+                    scale_labels.append("0")
+                elif tick % 100000000 == 0:
                     scale_labels.append(f"{int(tick/1000000)}m")
                 else:
                     scale_labels.append("")
                 tick += 20000000
+            offset += gap_size
 
         all_pos = np.concatenate(all_pos)
         all_cov = np.concatenate(all_cov)
@@ -194,7 +198,7 @@ class GenomeCNVPlot:
         if baseline is not None:
             self.main_plot.plot(np.array([0, genome_end]),
                                 np.array([baseline, baseline]),
-                                linewidth='1', color="#000000")
+                                linewidth='1', color="#0000ff")
         if bounds is not None and len(bounds) == 2:
             upperb, lowerb = bounds[1], bounds[0]
             self.main_plot.plot(np.array([0, genome_end]), np.array([lowerb, lowerb]),
@@ -219,6 +223,7 @@ class GenomeCNVPlot:
                     self.candidates_plot.plot(np.array([start, end]), np.array([0, 0]),
                                               linewidth='5', color=cnv_color)
             offset += length
+            offset += gap_size
 
         # draw chromosome boundaries
         for boundary in boundaries[:-1]:
