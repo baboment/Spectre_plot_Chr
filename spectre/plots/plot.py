@@ -138,7 +138,6 @@ class GenomeCNVPlot:
         chromosomes = list(coverage_per_chr.keys())
 
         all_pos = []
-        all_cov = []
         window_cov = []
         xticks = []
         labels = []
@@ -155,16 +154,13 @@ class GenomeCNVPlot:
             raw_pos = np.array(coverage_per_chr[chrom]["pos"])
             cov = np.array(coverage_per_chr[chrom]["cov"])
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
-            win_green = max(1, int(round(1000000 / step)))
-            win_blue = max(1, int(round(20000 / step)))
+            win_green = max(1, int(round(500000 / step)))
 
-            sm_cov = np.convolve(cov, np.ones(win_blue) / win_blue, mode="same")
             green_cov = np.convolve(cov, np.ones(win_green) / win_green, mode="same")
 
             pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)
             all_pos.append(pos)
-            all_cov.append(sm_cov)
             window_cov.append(green_cov)
             length = chr_lengths.get(chrom, pos[-1] if len(pos) > 0 else 0)
             xticks.append(offset + length / 2)
@@ -184,18 +180,9 @@ class GenomeCNVPlot:
                 tick += 20000000
 
         all_pos = np.concatenate(all_pos)
-        all_cov = np.concatenate(all_cov)
         window_cov = np.concatenate(window_cov)
 
-        # plot coverage and 1 Mb window average
-        # ensure the smoothed average is visible on top of the raw coverage
-        self.main_plot.plot(
-            all_pos,
-            all_cov,
-            color=self.coverage_color,
-            linewidth="0.5",
-            zorder=1,
-        )
+        # plot genome coverage averaged in 500 kb windows
         self.main_plot.plot(
             all_pos,
             window_cov,
