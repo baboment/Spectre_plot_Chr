@@ -93,7 +93,7 @@ class GenomeCNVPlot:
     def __init__(self, as_dev: bool = False):
         logging.getLogger('matplotlib.font_manager').disabled = True
         self.logger = logger.setup_log(__name__, as_dev)
-        self.figure = plot_engine.figure(figsize=(16, 6))
+        self.figure = plot_engine.figure(figsize=(32, 6))
         gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
         self.main_plot = plot_engine.subplot(gs[0])
         self.candidates_plot = plot_engine.subplot(gs[1])
@@ -117,8 +117,8 @@ class GenomeCNVPlot:
         chr_lengths : dict
             Dictionary with chromosome lengths.
         baseline : float, optional
-            Genome wide baseline ploidy. If ``None`` the mean ploidy of all
-            windows is used and shown as a green line.
+            Unused. Previously the genome wide baseline ploidy. The green line
+            now represents the average ploidy in 100 kbp windows.
         bounds : list, optional
             Lower and upper coverage bounds, used for plotting thresholds.
             Both thresholds are displayed in red.
@@ -138,6 +138,8 @@ class GenomeCNVPlot:
 
         all_pos = []
         all_cov = []
+        window_pos = []
+        window_cov = []
         xticks = []
         labels = []
         boundaries = []
@@ -151,6 +153,13 @@ class GenomeCNVPlot:
         for chrom in chromosomes:
             pos = np.array(coverage_per_chr[chrom]["pos"]) + offset
             cov = np.array(coverage_per_chr[chrom]["cov"])
+            bin_size = pos[1] - pos[0] if len(pos) > 1 else 1
+            win_bins = max(1, int(round(100000 / bin_size)))
+            for idx in range(0, len(cov), win_bins):
+                win_cov = np.nanmean(cov[idx:idx + win_bins])
+                win_position = pos[min(idx + win_bins - 1, len(pos) - 1)]
+                window_cov.append(win_cov)
+                window_pos.append(win_position)
             chr_means[chrom] = np.nanmean(cov)
             all_pos.append(pos)
             all_cov.append(cov)
@@ -163,7 +172,7 @@ class GenomeCNVPlot:
             tick = 0
             while tick <= length:
                 scale_ticks.append(start_off + tick)
-                if tick % 100000000 == 0:
+                if tick % 100000000 == 0 and tick != 0:
                     scale_labels.append(f"{int(tick/1000000)}")
                 else:
                     scale_labels.append("")
@@ -176,12 +185,10 @@ class GenomeCNVPlot:
         self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
-        # baseline (genome average) and bounds
-        genome_end = boundaries[-1]
-        if baseline is None:
-            baseline = float(np.nanmean(all_cov))
-        self.main_plot.plot(np.array([0, genome_end]), np.array([baseline, baseline]),
+        # window based ploidy line and bounds
+        self.main_plot.plot(np.array(window_pos), np.array(window_cov),
                             linewidth='1', color="#1a9850")
+        genome_end = boundaries[-1]
         if bounds is not None and len(bounds) == 2:
             upperb, lowerb = bounds[1], bounds[0]
             self.main_plot.plot(np.array([0, genome_end]), np.array([lowerb, lowerb]),
