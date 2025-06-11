@@ -105,7 +105,7 @@ class GenomeCNVPlot:
         self.output_directory = "./"
 
     def plot_genome(self, coverage_per_chr: dict, cnv_per_chr: dict, chr_lengths: dict,
-                    baseline: float = 2.0, bounds: Optional[list] = None):
+                    baseline: Optional[float] = None, bounds: Optional[list] = None):
         """Create genome wide CNV plot.
 
         Parameters
@@ -117,9 +117,17 @@ class GenomeCNVPlot:
         chr_lengths : dict
             Dictionary with chromosome lengths.
         baseline : float, optional
-            Reference coverage baseline, by default ``2.0``.
+            Genome wide baseline ploidy. If ``None`` the mean ploidy of all
+            windows is used and shown as a green line.
         bounds : list, optional
             Lower and upper coverage bounds, used for plotting thresholds.
+            Both thresholds are displayed in red.
+        
+        Notes
+        -----
+        A black horizontal line is drawn for each chromosome representing its
+        average ploidy. The x-axis is scaled per chromosome starting at ``0``
+        with tick marks every 20 Mbp and major labels every 100 Mbp.
         """
 
         if len(coverage_per_chr) == 0:
@@ -136,22 +144,30 @@ class GenomeCNVPlot:
         scale_ticks = []
         scale_labels = []
 
+        # compute average ploidy for each chromosome for later plotting
+        chr_means = {}
+
         offset = 0
         for chrom in chromosomes:
             pos = np.array(coverage_per_chr[chrom]["pos"]) + offset
             cov = np.array(coverage_per_chr[chrom]["cov"])
+            chr_means[chrom] = np.nanmean(cov)
             all_pos.append(pos)
             all_cov.append(cov)
             length = chr_lengths.get(chrom, pos[-1] if len(pos) > 0 else 0)
             xticks.append(offset + length / 2)
             labels.append(chrom)
+            start_off = offset
             offset += length
             boundaries.append(offset)
-            tick_val = 1
-            while tick_val < length:
-                scale_ticks.append(offset - length + tick_val)
-                scale_labels.append(f"{tick_val}")
-                tick_val *= 10
+            tick = 0
+            while tick <= length:
+                scale_ticks.append(start_off + tick)
+                if tick % 100000000 == 0:
+                    scale_labels.append(f"{int(tick/1000000)}")
+                else:
+                    scale_labels.append("")
+                tick += 20000000
 
         all_pos = np.concatenate(all_pos)
         all_cov = np.concatenate(all_cov)
@@ -160,20 +176,27 @@ class GenomeCNVPlot:
         self.main_plot.plot(all_pos, all_cov, color=self.coverage_color, linewidth='0.5')
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
 
-        # baseline and bounds
+        # baseline (genome average) and bounds
         genome_end = boundaries[-1]
+        if baseline is None:
+            baseline = float(np.nanmean(all_cov))
         self.main_plot.plot(np.array([0, genome_end]), np.array([baseline, baseline]),
-                            linewidth='1', color="#000000")
+                            linewidth='1', color="#1a9850")
         if bounds is not None and len(bounds) == 2:
             upperb, lowerb = bounds[1], bounds[0]
             self.main_plot.plot(np.array([0, genome_end]), np.array([lowerb, lowerb]),
-                                linewidth='1', color="#1a9850")
+                                linewidth='1', color="#d73027")
             self.main_plot.plot(np.array([0, genome_end]), np.array([upperb, upperb]),
                                 linewidth='1', color="#d73027")
 
-        # plot CNV segments
+        # plot CNV segments and chromosome averages
         offset = 0
         for chrom in chromosomes:
+            length = chr_lengths.get(chrom, 0)
+            chr_mean = chr_means.get(chrom, np.nan)
+            self.main_plot.plot(np.array([offset, offset + length]),
+                                np.array([chr_mean, chr_mean]),
+                                linewidth='1', color="#000000")
             if chrom in cnv_per_chr:
                 for cnv in cnv_per_chr[chrom]:
                     start = cnv.start + offset
@@ -181,7 +204,7 @@ class GenomeCNVPlot:
                     cnv_color = self.cnv_color.get(cnv.type, "#000000")
                     self.candidates_plot.plot(np.array([start, end]), np.array([0, 0]),
                                               linewidth='5', color=cnv_color)
-            offset += chr_lengths.get(chrom, 0)
+            offset += length
 
         # draw chromosome boundaries
         for boundary in boundaries[:-1]:
