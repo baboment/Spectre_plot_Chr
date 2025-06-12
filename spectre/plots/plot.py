@@ -101,7 +101,7 @@ class GenomeCNVPlot:
         self.candidates_plot = None
         self.coverage_color = "#67a9cf"
         self.cnv_color = {"DUP": "#d73027", "DEL": "#1a9850"}
-        self.axis_ylim = {"bottom": 0, "top": 6}
+        self.axis_ylim = {"bottom": 0, "top": 4}
         self.file_prefix = "test"
         self.output_directory = "./"
 
@@ -154,7 +154,7 @@ class GenomeCNVPlot:
             raw_pos = np.array(coverage_per_chr[chrom]["pos"])
             cov = np.array(coverage_per_chr[chrom]["cov"])
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
-            win_green = max(1, int(round(500000 / step)))
+            win_green = max(1, int(round(1000000 / step)))
 
             green_cov = np.convolve(cov, np.ones(win_green) / win_green, mode="same")
 
@@ -182,12 +182,12 @@ class GenomeCNVPlot:
         all_pos = np.concatenate(all_pos)
         window_cov = np.concatenate(window_cov)
 
-        # plot genome coverage averaged in 500 kb windows using scatter points
+        # plot genome coverage averaged in 1 Mb windows using scatter points
         self.main_plot.scatter(
             all_pos,
             window_cov,
-            c="#1a9850",
-            s=2,
+            c="#4caf50",
+            s=0.01,
             zorder=2,
         )
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
@@ -197,13 +197,13 @@ class GenomeCNVPlot:
         if baseline is not None:
             self.main_plot.plot(np.array([0, genome_end]),
                                 np.array([baseline, baseline]),
-                                linewidth='1', color="#0000ff")
+                                linewidth='1', color="#3f51b5")
         if bounds is not None and len(bounds) == 2:
             upperb, lowerb = bounds[1], bounds[0]
             self.main_plot.plot(np.array([0, genome_end]), np.array([lowerb, lowerb]),
-                                linewidth='1', color="#d73027")
+                                linewidth='1', color="#f44336")
             self.main_plot.plot(np.array([0, genome_end]), np.array([upperb, upperb]),
-                                linewidth='1', color="#d73027")
+                                linewidth='1', color="#f44336")
 
         self.main_plot.set_xlim(left=0, right=genome_end)
         self.main_plot.margins(x=0)
@@ -235,7 +235,7 @@ class GenomeCNVPlot:
         self.figure.suptitle(self.file_prefix)
         self.figure.tight_layout()
         output_path = f'{self.output_directory}/img/{self.file_prefix}_plot_cnv_genome.png'
-        self.figure.savefig(output_path, dpi=300)
+        self.figure.savefig(output_path, dpi=350)
         self.logger.info(f'Plot saved: {output_path}')
         self.figure.clf()
 
