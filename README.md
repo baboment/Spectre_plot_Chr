@@ -212,3 +212,17 @@ vcf_utils <command> [<args>]
         Version:
             version    Shows current version/build
 ```
+
+## Genome CNV plot
+
+Spectre provides a genome wide plot summarising coverage and CNV calls. For each
+chromosome the coverage values are averaged in windows of roughly one megabase.
+The window size is calculated by taking the median distance between consecutive
+coverage positions and dividing one million by this step size. At least one
+value contributes to each window. The resulting smoothed coverage is plotted as
+green points across all chromosomes.
+
+Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
+major labels every 100 Mbp. A blue horizontal line can mark the global baseline
+ploidy, while optional red lines highlight user defined coverage bounds. The
+average ploidy of each chromosome is shown as a black line.
