@@ -3,6 +3,7 @@ from spectre.util import logger
 import matplotlib.pyplot as plot_engine
 from matplotlib import gridspec
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
 from typing import Optional
 
 
@@ -126,9 +127,11 @@ class GenomeCNVPlot:
         
         Notes
         -----
-        A black horizontal line is drawn for each chromosome representing its
-        average ploidy. The x-axis is scaled per chromosome starting at ``0``
-        with tick marks every 20 Mbp and major labels every 100 Mbp.
+        Coverage is smoothed using a Gaussian filter with a width of roughly one
+        megabase before plotting. A black horizontal line is drawn for each
+        chromosome representing its average ploidy. The x-axis is scaled per
+        chromosome starting at ``0`` with tick marks every 20 Mbp and major
+        labels every 100 Mbp.
         """
 
         if len(coverage_per_chr) == 0:
@@ -156,7 +159,9 @@ class GenomeCNVPlot:
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
             win_green = max(1, int(round(1000000 / step)))
 
-            green_cov = np.convolve(cov, np.ones(win_green) / win_green, mode="same")
+            # smooth coverage using a Gaussian kernel roughly spanning 1 Mb
+            sigma = max(1, win_green / 6)
+            green_cov = gaussian_filter1d(cov, sigma=sigma, mode="nearest")
 
             pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)

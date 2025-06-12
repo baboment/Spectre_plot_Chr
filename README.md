@@ -216,11 +216,12 @@ vcf_utils <command> [<args>]
 ## Genome CNV plot
 
 Spectre provides a genome wide plot summarising coverage and CNV calls. For each
-chromosome the coverage values are averaged in windows of roughly one megabase.
-The window size is calculated by taking the median distance between consecutive
-coverage positions and dividing one million by this step size. At least one
-value contributes to each window. The resulting smoothed coverage is plotted as
-green points across all chromosomes.
+chromosome the coverage values are smoothed with a Gaussian kernel spanning
+roughly one megabase. The window width is derived from the median distance
+between consecutive coverage positions. The filter's sigma is set to one sixth
+of this width, covering approximately three standard deviations on each side.
+The resulting smoothed coverage is plotted as green points across all
+chromosomes.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline
