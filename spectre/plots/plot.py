@@ -182,12 +182,12 @@ class GenomeCNVPlot:
         all_pos = np.concatenate(all_pos)
         window_cov = np.concatenate(window_cov)
 
-        # plot genome coverage averaged in 500 kb windows
-        self.main_plot.plot(
+        # plot genome coverage averaged in 500 kb windows using scatter points
+        self.main_plot.scatter(
             all_pos,
             window_cov,
-            color="#1a9850",
-            linewidth="1",
+            c="#1a9850",
+            s=2,
             zorder=2,
         )
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
@@ -208,22 +208,17 @@ class GenomeCNVPlot:
         self.main_plot.set_xlim(left=0, right=genome_end)
         self.main_plot.margins(x=0)
 
-        # plot CNV segments and chromosome averages
+        # plot chromosome averages as black lines
         offset = 0
         for chrom in chromosomes:
             length = chr_lengths.get(chrom, 0)
             chr_mean = chr_means.get(chrom, np.nan)
-            # chromosome baseline represented as a black line
-            self.main_plot.plot(np.array([offset, offset + length]),
-                                np.array([chr_mean, chr_mean]),
-                                linewidth='1', color="#000000")
-            if chrom in cnv_per_chr:
-                for cnv in cnv_per_chr[chrom]:
-                    start = cnv.start + offset
-                    end = cnv.end + offset
-                    cnv_color = self.cnv_color.get(cnv.type, "#000000")
-                    self.main_plot.plot(np.array([start, end]), np.array([chr_mean, chr_mean]),
-                                       linewidth='5', color=cnv_color)
+            self.main_plot.plot(
+                np.array([offset, offset + length]),
+                np.array([chr_mean, chr_mean]),
+                linewidth=1,
+                color="#000000",
+            )
             offset += length
 
         # draw chromosome boundaries
@@ -235,7 +230,7 @@ class GenomeCNVPlot:
 
         chr_axis = self.main_plot.secondary_xaxis('top')
         chr_axis.set_xticks(xticks)
-        chr_axis.set_xticklabels(labels, rotation=90, fontsize=8)
+        chr_axis.set_xticklabels(labels, rotation=90, fontsize=10)
 
         self.figure.suptitle(self.file_prefix)
         self.figure.tight_layout()
