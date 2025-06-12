@@ -95,10 +95,10 @@ class GenomeCNVPlot:
         self.logger = logger.setup_log(__name__, as_dev)
         # wider figure for genome wide plots
         self.figure = plot_engine.figure(figsize=(32, 6))
-        gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
+        # single panel for coverage and CNV calls
+        gs = gridspec.GridSpec(1, 1)
         self.main_plot = plot_engine.subplot(gs[0])
-        self.candidates_plot = plot_engine.subplot(gs[1])
-        self.candidates_plot.axes.get_yaxis().set_visible(False)
+        self.candidates_plot = None
         self.coverage_color = "#67a9cf"
         self.cnv_color = {"DUP": "#d73027", "DEL": "#1a9850"}
         self.axis_ylim = {"bottom": 0, "top": 6}
@@ -182,12 +182,12 @@ class GenomeCNVPlot:
         all_pos = np.concatenate(all_pos)
         window_cov = np.concatenate(window_cov)
 
-        # plot genome coverage averaged in 500 kb windows
-        self.main_plot.plot(
+        # plot genome coverage averaged in 500 kb windows using scatter points
+        self.main_plot.scatter(
             all_pos,
             window_cov,
-            color="#1a9850",
-            linewidth="1",
+            c="#1a9850",
+            s=2,
             zorder=2,
         )
         self.main_plot.axes.set_ylim(bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"])
@@ -206,38 +206,33 @@ class GenomeCNVPlot:
                                 linewidth='1', color="#d73027")
 
         self.main_plot.set_xlim(left=0, right=genome_end)
-        self.candidates_plot.set_xlim(left=0, right=genome_end)
         self.main_plot.margins(x=0)
-        self.candidates_plot.margins(x=0)
 
-        # plot CNV segments and chromosome averages
+        # plot chromosome averages as black lines
         offset = 0
         for chrom in chromosomes:
             length = chr_lengths.get(chrom, 0)
             chr_mean = chr_means.get(chrom, np.nan)
-            # chromosome baseline represented as a black line
-            self.main_plot.plot(np.array([offset, offset + length]),
-                                np.array([chr_mean, chr_mean]),
-                                linewidth='1', color="#000000")
-            if chrom in cnv_per_chr:
-                for cnv in cnv_per_chr[chrom]:
-                    start = cnv.start + offset
-                    end = cnv.end + offset
-                    cnv_color = self.cnv_color.get(cnv.type, "#000000")
-                    self.candidates_plot.plot(np.array([start, end]), np.array([0, 0]),
-                                              linewidth='5', color=cnv_color)
+            self.main_plot.plot(
+                np.array([offset, offset + length]),
+                np.array([chr_mean, chr_mean]),
+                linewidth=1,
+                color="#000000",
+            )
             offset += length
 
         # draw chromosome boundaries
         for boundary in boundaries[:-1]:
             self.main_plot.axvline(boundary, color="#303030", linewidth=1)
-            self.candidates_plot.axvline(boundary, color="#303030", linewidth=1)
 
-        self.main_plot.set_xticks(xticks)
-        self.main_plot.set_xticklabels(labels, rotation=90, fontsize=6)
-        self.candidates_plot.set_xticks(scale_ticks)
-        self.candidates_plot.set_xticklabels(scale_labels, rotation=45, fontsize=6)
+        self.main_plot.set_xticks(scale_ticks)
+        self.main_plot.set_xticklabels(scale_labels, rotation=45, fontsize=8)
 
+        chr_axis = self.main_plot.secondary_xaxis('top')
+        chr_axis.set_xticks(xticks)
+        chr_axis.set_xticklabels(labels, rotation=90, fontsize=10)
+
+        self.figure.suptitle(self.file_prefix)
         self.figure.tight_layout()
         output_path = f'{self.output_directory}/img/{self.file_prefix}_plot_cnv_genome.png'
         self.figure.savefig(output_path, dpi=300)
