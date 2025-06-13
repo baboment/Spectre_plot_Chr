@@ -233,6 +233,8 @@ estimates along every chromosome. For plotting, these estimates are averaged
 across roughly one megabase based on the median spacing of the coverage data.
 Points are coloured by their ploidy value using a five colour scale from
 ``#b2182b`` at zero through ``#fbea6cf9`` at two to ``#313695`` at four.
+A colour bar on the right of the figure indicates the ploidy scale
+from ``0`` to ``4``.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline

@@ -255,7 +255,7 @@ class GenomeCNVPlot:
         window_cov = np.concatenate(window_cov)
 
         # plot genome coverage averaged in 1 Mb windows using colour coded scatter
-        self.main_plot.scatter(
+        scatter = self.main_plot.scatter(
             all_pos,
             window_cov,
             c=window_cov,
@@ -319,6 +319,13 @@ class GenomeCNVPlot:
         chr_axis = self.main_plot.secondary_xaxis("top")
         chr_axis.set_xticks(xticks)
         chr_axis.set_xticklabels(labels, rotation=90, fontsize=10)
+
+        cbar = self.figure.colorbar(
+            scatter,
+            ax=self.main_plot,
+            label="Ploidy",
+            ticks=[0, 1, 2, 3, 4],
+        )
 
         self.figure.suptitle(self.file_prefix)
         self.figure.tight_layout()
