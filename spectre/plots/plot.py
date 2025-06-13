@@ -127,11 +127,13 @@ class GenomeCNVPlot:
         
         Notes
         -----
-        Coverage is smoothed using a Gaussian filter with a width of roughly one
-        megabase before plotting. A black horizontal line is drawn for each
-        chromosome representing its average ploidy. The x-axis is scaled per
-        chromosome starting at ``0`` with tick marks every 20 Mbp and major
-        labels every 100 Mbp.
+        The coverage input is expected at approximately 1 kb intervals as
+        produced by Mosdepth. For the genome wide plot these values are
+        smoothed with a Gaussian filter spanning roughly one megabase. The
+        filter's ``sigma`` is one sixth of the window width. A black horizontal
+        line is drawn for each chromosome representing its average ploidy. The
+        x-axis is scaled per chromosome starting at ``0`` with tick marks every
+        20 Mbp and major labels every 100 Mbp.
         """
 
         if len(coverage_per_chr) == 0:

@@ -63,7 +63,17 @@ Example command:
 mosdepth -t 8 -x -b 1000 -Q 20 "${out_path}/${sample_id}" "${bam_path}"
 ```
 
->IMPORTANT: We recommend to run **Mosdepth** with a **bin size of 1kb** and a **mapping quality of at least 20** (-Q 20), as Spectre is optimized for that. 
+>IMPORTANT: We recommend to run **Mosdepth** with a **bin size of 1kb** and a **mapping quality of at least 20** (-Q 20), as Spectre is optimized for that.
+
+Coverage produced at this resolution forms the basis of Spectre's ploidy
+calculation. Each 1 kb window is normalised by the genome wide median
+coverage to yield an estimated ploidy value. When creating the genome wide
+plot these 1 kb ploidy scores are not displayed directly. Instead they are
+smoothed across roughly one megabase to highlight broader trends. The
+smoothing window is derived from the median distance between consecutive
+coverage entries and corresponds to around one million bases. A Gaussian
+kernel with ``sigma`` set to one sixth of this window width is applied to the
+ploidy values before plotting.
 
 - The region coverage file (mosdepth)
 - SampleID e.g.
@@ -215,13 +225,15 @@ vcf_utils <command> [<args>]
 
 ## Genome CNV plot
 
-Spectre provides a genome wide plot summarising coverage and CNV calls. For each
-chromosome the coverage values are smoothed with a Gaussian kernel spanning
-roughly one megabase. The window width is derived from the median distance
-between consecutive coverage positions. The filter's sigma is set to one sixth
-of this width, covering approximately three standard deviations on each side.
-The resulting smoothed coverage is plotted as green points across all
-chromosomes.
+Spectre provides a genome wide plot summarising coverage and CNV calls. The
+coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
+each 1 kb window by the genome wide median coverage Spectre obtains ploidy
+estimates along every chromosome. For plotting, these estimates are smoothed
+with a Gaussian kernel spanning roughly one megabase. The window width is
+derived from the median spacing of the coverage data and the filter's
+``sigma`` is set to one sixth of this width, meaning about three standard
+deviations fall to either side. The resulting smoothed coverage is plotted as
+green points across all chromosomes.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline
