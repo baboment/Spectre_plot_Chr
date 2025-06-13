@@ -69,11 +69,12 @@ Coverage produced at this resolution forms the basis of Spectre's ploidy
 calculation. Each 1 kb window is normalised by the genome wide median
 coverage to yield an estimated ploidy value. When creating the genome wide
 plot these 1 kb ploidy scores are not displayed directly. Instead they are
-smoothed across roughly one megabase to highlight broader trends. The
+averaged across roughly one megabase to highlight broader trends. The
 smoothing window is derived from the median distance between consecutive
-coverage entries and corresponds to around one million bases. A Gaussian
-kernel with ``sigma`` set to one sixth of this window width is applied to the
-ploidy values before plotting.
+coverage entries and corresponds to around one million bases. The resulting
+averaged ploidy is coloured by value when plotting, using a nine colour
+palette ranging from ``#d73027`` at zero to ``#4575b4`` at four with
+``#ffffbf`` representing copy number two.
 
 - The region coverage file (mosdepth)
 - SampleID e.g.
@@ -228,12 +229,10 @@ vcf_utils <command> [<args>]
 Spectre provides a genome wide plot summarising coverage and CNV calls. The
 coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
 each 1 kb window by the genome wide median coverage Spectre obtains ploidy
-estimates along every chromosome. For plotting, these estimates are smoothed
-with a Gaussian kernel spanning roughly one megabase. The window width is
-derived from the median spacing of the coverage data and the filter's
-``sigma`` is set to one sixth of this width, meaning about three standard
-deviations fall to either side. The resulting smoothed coverage is plotted as
-green points across all chromosomes.
+estimates along every chromosome. For plotting, these estimates are averaged
+across roughly one megabase based on the median spacing of the coverage data.
+Points are coloured by their ploidy value using a nine colour scale from
+``#d73027`` at zero through ``#ffffbf`` at two to ``#4575b4`` at four.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline

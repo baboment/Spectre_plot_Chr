@@ -2,8 +2,8 @@ import logging
 from spectre.util import logger
 import matplotlib.pyplot as plot_engine
 from matplotlib import gridspec
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
-from scipy.ndimage import gaussian_filter1d
 from typing import Optional
 
 
@@ -45,7 +45,7 @@ class CNVPlot:
         self.candidates_plot.axes.get_yaxis().set_visible(False)
         # colors
         self.coverage_color = "#67a9cf"
-        self.cnv_color = {"DUP": "#d73027", "DEL": "#1a9850"}
+        self.cnv_color = {"DUP": "#4575b4", "DEL": "#d73027"}
         # legends
         self.main = ""
         self.x_axis = ""
@@ -101,7 +101,21 @@ class GenomeCNVPlot:
         self.main_plot = plot_engine.subplot(gs[0])
         self.candidates_plot = None
         self.coverage_color = "#67a9cf"
-        self.cnv_color = {"DUP": "#d73027", "DEL": "#1a9850"}
+        self.cnv_color = {"DUP": "#4575b4", "DEL": "#d73027"}
+        self.ploidy_cmap = LinearSegmentedColormap.from_list(
+            "ploidy",
+            [
+                "#d73027",
+                "#f46d43",
+                "#fdae61",
+                "#fee090",
+                "#ffffbf",
+                "#e0f3f8",
+                "#abd9e9",
+                "#74add1",
+                "#4575b4",
+            ],
+        )
         self.axis_ylim = {"bottom": 0, "top": 4}
         self.file_prefix = "test"
         self.output_directory = "./"
@@ -129,11 +143,13 @@ class GenomeCNVPlot:
         -----
         The coverage input is expected at approximately 1 kb intervals as
         produced by Mosdepth. For the genome wide plot these values are
-        smoothed with a Gaussian filter spanning roughly one megabase. The
-        filter's ``sigma`` is one sixth of the window width. A black horizontal
-        line is drawn for each chromosome representing its average ploidy. The
-        x-axis is scaled per chromosome starting at ``0`` with tick marks every
-        20 Mbp and major labels every 100 Mbp.
+        averaged using a one megabase window derived from the data spacing.
+        A black horizontal line is drawn for each chromosome representing its
+        average ploidy. The x-axis is scaled per chromosome starting at ``0``
+        with tick marks every 20 Mbp and major labels every 100 Mbp. Scatter
+        points are coloured by ploidy ranging from ``#d73027`` at zero
+        (deletions) through ``#ffffbf`` at two to ``#4575b4`` at four
+        (duplications).
         """
 
         if len(coverage_per_chr) == 0:
@@ -161,9 +177,9 @@ class GenomeCNVPlot:
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
             win_green = max(1, int(round(1000000 / step)))
 
-            # smooth coverage using a Gaussian kernel roughly spanning 1 Mb
-            sigma = max(1, win_green / 6)
-            green_cov = gaussian_filter1d(cov, sigma=sigma, mode="nearest")
+            # average coverage using a window of roughly 1 Mb
+            kernel = np.ones(win_green) / win_green
+            green_cov = np.convolve(cov, kernel, mode="same")
 
             pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)
@@ -189,11 +205,14 @@ class GenomeCNVPlot:
         all_pos = np.concatenate(all_pos)
         window_cov = np.concatenate(window_cov)
 
-        # plot genome coverage averaged in 1 Mb windows using scatter points
+        # plot genome coverage averaged in 1 Mb windows using colour coded scatter
         self.main_plot.scatter(
             all_pos,
             window_cov,
-            c="#4caf50",
+            c=window_cov,
+            cmap=self.ploidy_cmap,
+            vmin=0,
+            vmax=4,
             s=0.01,
             zorder=2,
         )
