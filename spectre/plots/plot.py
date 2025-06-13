@@ -3,7 +3,6 @@ from spectre.util import logger
 import matplotlib.pyplot as plot_engine
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
-from scipy.ndimage import gaussian_filter1d
 import numpy as np
 from typing import Optional
 
@@ -196,10 +195,9 @@ class GenomeCNVPlot:
         Notes
         -----
         The coverage input is expected at approximately 1 kb intervals as
-        produced by Mosdepth. For the genome wide plot these values are first
-        smoothed using a Gaussian kernel derived from the data spacing so that
-        one standard deviation corresponds to roughly one sixth of a megabase
-        window.
+        produced by Mosdepth. For the genome wide plot these values are
+        smoothed by averaging in a window of roughly one megabase derived from
+        the median spacing of the coverage data.
         A black horizontal line is drawn for each chromosome representing its
         average ploidy. The x-axis is scaled per chromosome starting at ``0``
         with tick marks every 20 Mbp and major labels every 100 Mbp. Scatter
@@ -233,9 +231,8 @@ class GenomeCNVPlot:
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
             win_green = max(1, int(round(1000000 / step)))
 
-            # smooth coverage using a Gaussian kernel of approx 1 Mb
-            sigma = win_green / 6
-            green_cov = gaussian_filter1d(cov, sigma=sigma, mode="nearest")
+            # smooth coverage using a simple moving average of approx 1 Mb
+            green_cov = np.convolve(cov, np.ones(win_green) / win_green, mode="same")
 
             pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)
