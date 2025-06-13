@@ -68,13 +68,12 @@ mosdepth -t 8 -x -b 1000 -Q 20 "${out_path}/${sample_id}" "${bam_path}"
 Coverage produced at this resolution forms the basis of Spectre's ploidy
 calculation. Each 1 kb window is normalised by the genome wide median
 coverage to yield an estimated ploidy value. When creating the genome wide
-plot these 1 kb ploidy scores are not displayed directly. Instead they are
-averaged across roughly one megabase to highlight broader trends. The
-smoothing window is derived from the median distance between consecutive
-coverage entries and corresponds to around one million bases. The resulting
-averaged ploidy is coloured by value when plotting, using a five colour
-palette ranging from ``#b2182b`` at zero to ``#313695`` at four with
-``#fbea6cf9`` representing copy number two.
+plot these values are first smoothed using a Gaussian kernel covering
+approximately one megabase. The kernel width is derived from the median
+distance between consecutive coverage entries so that the effective window
+spans about one million bases. The resulting smoothed ploidy values are then
+coloured for plotting using a nine step palette ranging from ``#d73027`` at
+zero, ``#ffffbf`` at two and ``#4575b4`` at four.
 
 - The region coverage file (mosdepth)
 - SampleID e.g.
@@ -229,12 +228,12 @@ vcf_utils <command> [<args>]
 Spectre provides a genome wide plot summarising coverage and CNV calls. The
 coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
 each 1 kb window by the genome wide median coverage Spectre obtains ploidy
-estimates along every chromosome. For plotting, these estimates are averaged
-across roughly one megabase based on the median spacing of the coverage data.
-Points are coloured by their ploidy value using a five colour scale from
-``#b2182b`` at zero through ``#fbea6cf9`` at two to ``#313695`` at four.
-A colour bar on the right of the figure indicates the ploidy scale
-from ``0`` to ``4``.
+estimates along every chromosome. For visualisation these estimates are
+smoothed using a Gaussian kernel spanning roughly one megabase derived from the
+median spacing of the coverage data. Points are coloured by their ploidy value
+using a nine colour palette starting at ``#d73027`` for zero, ``#ffffbf`` for two
+and ``#4575b4`` for four. A colour bar beside the plot indicates this ploidy
+scale from ``0`` to ``4``.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline

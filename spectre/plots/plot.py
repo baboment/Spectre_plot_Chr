@@ -3,6 +3,7 @@ from spectre.util import logger
 import matplotlib.pyplot as plot_engine
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
+from scipy.ndimage import gaussian_filter1d
 import numpy as np
 from typing import Optional
 
@@ -152,11 +153,15 @@ class GenomeCNVPlot:
         self.ploidy_cmap = LinearSegmentedColormap.from_list(
             "ploidy",
             [
-                "#b2182b",
+                "#d73027",
                 "#f46d43",
-                "#fbea6cf9",
-                "#2166ac",
-                "#313695",
+                "#fdae61",
+                "#fee090",
+                "#ffffbf",
+                "#e0f3f8",
+                "#abd9e9",
+                "#74add1",
+                "#4575b4",
             ],
         )
         self.axis_ylim = {"bottom": 0, "top": 4}
@@ -191,13 +196,15 @@ class GenomeCNVPlot:
         Notes
         -----
         The coverage input is expected at approximately 1 kb intervals as
-        produced by Mosdepth. For the genome wide plot these values are
-        averaged using a one megabase window derived from the data spacing.
+        produced by Mosdepth. For the genome wide plot these values are first
+        smoothed using a Gaussian kernel derived from the data spacing so that
+        one standard deviation corresponds to roughly one sixth of a megabase
+        window.
         A black horizontal line is drawn for each chromosome representing its
         average ploidy. The x-axis is scaled per chromosome starting at ``0``
         with tick marks every 20 Mbp and major labels every 100 Mbp. Scatter
-        points are coloured by ploidy ranging from ``#d73027`` at zero
-        (deletions) through ``#ffffbf`` at two to ``#4575b4`` at four
+        points are coloured with a nine step palette ranging from ``#d73027`` at
+        zero (deletions) through ``#ffffbf`` at two to ``#4575b4`` at four
         (duplications).
         """
 
@@ -226,9 +233,9 @@ class GenomeCNVPlot:
             step = np.median(np.diff(raw_pos)) if len(raw_pos) > 1 else 1
             win_green = max(1, int(round(1000000 / step)))
 
-            # average coverage using a window of roughly 1 Mb
-            kernel = np.ones(win_green) / win_green
-            green_cov = np.convolve(cov, kernel, mode="same")
+            # smooth coverage using a Gaussian kernel of approx 1 Mb
+            sigma = win_green / 6
+            green_cov = gaussian_filter1d(cov, sigma=sigma, mode="nearest")
 
             pos = raw_pos + offset
             chr_means[chrom] = np.nanmean(cov)
@@ -325,10 +332,12 @@ class GenomeCNVPlot:
             ax=self.main_plot,
             label="Ploidy",
             ticks=[0, 1, 2, 3, 4],
+            fraction=0.025,
+            pad=0.01,
         )
 
         self.figure.suptitle(self.file_prefix)
-        self.figure.tight_layout()
+        self.figure.tight_layout(rect=[0, 0, 0.99, 0.95])
         output_path = f"{self.output_directory}/img/{self.file_prefix}_plot_cnv_genome.png"
         self.figure.savefig(output_path, dpi=350)
         self.logger.info(f"Plot saved: {output_path}")
