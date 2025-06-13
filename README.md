@@ -229,12 +229,5 @@ coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
 each 1 kb window by the genome wide median coverage Spectre obtains ploidy
 estimates along every chromosome. For visualisation these estimates are
 smoothed by averaging in windows of roughly one megabase derived from the
-median spacing of the coverage data. Points are coloured by their ploidy value
-using a five colour palette starting at ``#b2182b`` for zero, ``#fbea6cf9`` for two
-and ``#313695`` for four. A colour bar beside the plot indicates this ploidy
-scale from ``0`` to ``4``.
+median spacing of the coverage data. 
 
-Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
-major labels every 100 Mbp. A blue horizontal line can mark the global baseline
-ploidy, while optional red lines highlight user defined coverage bounds. The
-average ploidy of each chromosome is shown as a black line.
