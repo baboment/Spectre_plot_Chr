@@ -71,8 +71,8 @@ coverage to yield an estimated ploidy value. When creating the genome wide
 plot these values are smoothed by averaging in a window of approximately one
 megabase derived from the median distance between consecutive coverage
 entries. The resulting smoothed ploidy values are then
-coloured for plotting using a nine step palette ranging from ``#d73027`` at
-zero, ``#ffffbf`` at two and ``#4575b4`` at four.
+coloured for plotting using a five step palette ranging from ``#b2182b`` at
+zero through ``#fbea6cf9`` at two to ``#313695`` at four.
 
 - The region coverage file (mosdepth)
 - SampleID e.g.
@@ -230,8 +230,8 @@ each 1 kb window by the genome wide median coverage Spectre obtains ploidy
 estimates along every chromosome. For visualisation these estimates are
 smoothed by averaging in windows of roughly one megabase derived from the
 median spacing of the coverage data. Points are coloured by their ploidy value
-using a nine colour palette starting at ``#d73027`` for zero, ``#ffffbf`` for two
-and ``#4575b4`` for four. A colour bar beside the plot indicates this ploidy
+using a five colour palette starting at ``#b2182b`` for zero, ``#fbea6cf9`` for two
+and ``#313695`` for four. A colour bar beside the plot indicates this ploidy
 scale from ``0`` to ``4``.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and

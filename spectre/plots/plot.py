@@ -55,7 +55,7 @@ class CNVPlot:
         self.candidates_plot.axes.get_yaxis().set_visible(False)
         # colors
         self.coverage_color = "#67a9cf"
-        self.cnv_color = {"DUP": "#4575b4", "DEL": "#d73027"}
+        self.cnv_color = {"DUP": "#313695", "DEL": "#b2182b"}
         # legends
         self.main = ""
         self.x_axis = ""
@@ -152,15 +152,11 @@ class GenomeCNVPlot:
         self.ploidy_cmap = LinearSegmentedColormap.from_list(
             "ploidy",
             [
-                "#d73027",
+                "#b2182b",
                 "#f46d43",
-                "#fdae61",
-                "#fee090",
-                "#ffffbf",
-                "#e0f3f8",
-                "#abd9e9",
-                "#74add1",
-                "#4575b4",
+                "#fbea6cf9",
+                "#2166ac",
+                "#313695",
             ],
         )
         self.axis_ylim = {"bottom": 0, "top": 4}
