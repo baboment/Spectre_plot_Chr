@@ -237,6 +237,19 @@ class GenomeCNVPlot:
             length = chr_lengths.get(chrom, pos[-1] if len(pos) > 0 else 0)
             xticks.append(offset + length / 2)
             labels.append(chrom)
+
+            # highlight CNV regions for current chromosome
+            if cnv_per_chr is not None and chrom in cnv_per_chr:
+                for cnv in cnv_per_chr[chrom]:
+                    cnv_color = "#f5b7b1" if cnv.type == "DEL" else "#b4cafa"
+                    self.main_plot.axvspan(
+                        cnv.start + offset,
+                        cnv.end + offset,
+                        color=cnv_color,
+                        alpha=0.3,
+                        zorder=1,
+                        linewidth=0,
+                    )
             start_off = offset
             offset += length
             boundaries.append(offset)

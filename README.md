@@ -229,5 +229,9 @@ coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
 each 1 kb window by the genome wide median coverage Spectre obtains ploidy
 estimates along every chromosome. For visualisation these estimates are
 smoothed by averaging in windows of roughly one megabase derived from the
-median spacing of the coverage data. 
+median spacing of the coverage data.
+
+Deletion and duplication calls are now highlighted in the genome scatter plot.
+Deletion regions are shaded with ``#f5b7b1`` and duplications with ``#b4cafa``
+to make copy number alterations stand out clearly.
 
