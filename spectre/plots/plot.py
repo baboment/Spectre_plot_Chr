@@ -143,10 +143,12 @@ class GenomeCNVPlot:
         self.logger = logger.setup_log(__name__, as_dev)
         # wider figure for genome wide plots
         self.figure = plot_engine.figure(figsize=(32, 6))
-        # single panel for coverage and CNV calls
-        gs = gridspec.GridSpec(1, 1)
+        # two panels, one for coverage and one for CNV candidates
+        gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
         self.main_plot = plot_engine.subplot(gs[0])
-        self.candidates_plot = None
+        self.candidates_plot = plot_engine.subplot(gs[1])
+        # hide y-axis on the CNV candidate plot
+        self.candidates_plot.axes.get_yaxis().set_visible(False)
         self.coverage_color = "#67a9cf"
         self.cnv_color = {"DUP": "#313695", "DEL": "#b2182b"}
         self.ploidy_cmap = LinearSegmentedColormap.from_list(
@@ -238,6 +240,16 @@ class GenomeCNVPlot:
             xticks.append(offset + length / 2)
             labels.append(chrom)
             start_off = offset
+            if cnv_per_chr is not None and chrom in cnv_per_chr:
+                for cnv in cnv_per_chr[chrom]:
+                    cnv_start = start_off + cnv.start
+                    cnv_end = start_off + cnv.end
+                    self.candidates_plot.plot(
+                        [cnv_start, cnv_end],
+                        [0, 0],
+                        linewidth=5,
+                        color=self.cnv_color[cnv.type],
+                    )
             offset += length
             boundaries.append(offset)
             tick = 0
@@ -328,6 +340,11 @@ class GenomeCNVPlot:
             fraction=0.025,
             pad=0.01,
         )
+
+        # synchronize candidate subplot with coverage plot
+        self.candidates_plot.set_xlim(self.main_plot.get_xlim())
+        self.candidates_plot.set_xticks(scale_ticks)
+        self.candidates_plot.set_xticklabels(scale_labels, rotation=45, fontsize=8)
 
         self.figure.suptitle(self.file_prefix)
         self.figure.tight_layout(rect=[0, 0, 0.99, 0.95])
