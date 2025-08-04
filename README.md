@@ -63,7 +63,16 @@ Example command:
 mosdepth -t 8 -x -b 1000 -Q 20 "${out_path}/${sample_id}" "${bam_path}"
 ```
 
->IMPORTANT: We recommend to run **Mosdepth** with a **bin size of 1kb** and a **mapping quality of at least 20** (-Q 20), as Spectre is optimized for that. 
+>IMPORTANT: We recommend to run **Mosdepth** with a **bin size of 1kb** and a **mapping quality of at least 20** (-Q 20), as Spectre is optimized for that.
+
+Coverage produced at this resolution forms the basis of Spectre's ploidy
+calculation. Each 1 kb window is normalised by the genome wide median
+coverage to yield an estimated ploidy value. When creating the genome wide
+plot these values are smoothed by averaging in a window of approximately one
+megabase derived from the median distance between consecutive coverage
+entries. The resulting smoothed ploidy values are then
+coloured for plotting using a nine step palette ranging from ``#d73027`` at
+zero, ``#ffffbf`` at two and ``#4575b4`` at four.
 
 - The region coverage file (mosdepth)
 - SampleID e.g.
@@ -215,12 +224,15 @@ vcf_utils <command> [<args>]
 
 ## Genome CNV plot
 
-Spectre provides a genome wide plot summarising coverage and CNV calls. For each
-chromosome the coverage values are averaged in windows of roughly one megabase.
-The window size is calculated by taking the median distance between consecutive
-coverage positions and dividing one million by this step size. At least one
-value contributes to each window. The resulting smoothed coverage is plotted as
-green points across all chromosomes.
+Spectre provides a genome wide plot summarising coverage and CNV calls. The
+coverage input stems from Mosdepth run with a 1 kb bin size. After normalising
+each 1 kb window by the genome wide median coverage Spectre obtains ploidy
+estimates along every chromosome. For visualisation these estimates are
+smoothed by averaging in windows of roughly one megabase derived from the
+median spacing of the coverage data. Points are coloured by their ploidy value
+using a nine colour palette starting at ``#d73027`` for zero, ``#ffffbf`` for two
+and ``#4575b4`` for four. A colour bar beside the plot indicates this ploidy
+scale from ``0`` to ``4``.
 
 Chromosomes are concatenated on the x-axis with tick marks every 20 Mbp and
 major labels every 100 Mbp. A blue horizontal line can mark the global baseline
