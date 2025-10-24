@@ -5,143 +5,6 @@ from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 from typing import Optional
-
-
-class CoveragePlot:
-    def __init__(self, as_dev: bool = False):
-        logging.getLogger('matplotlib.font_manager').disabled = True
-        self.logger = logger.setup_log(__name__, as_dev)
-        # the plot
-        self.figure = plot_engine.figure(figsize=(8, 4))
-        gs = gridspec.GridSpec(1, 1)
-        self.main_plot = plot_engine.subplot(gs[0])
-        # colors
-        self.coverage_color = "#67a9cf"
-        # legends
-        self.main = ""
-        self.x_axis = ""
-        self.y_axis = ""
-        self.file_prefix = "test"
-        self.output_directory = "./"
-
-    def plot_coverage(self, current_chromosome: str = "", coverage=None) -> None:
-        self.logger.debug("plotting coverage")
-        # main plot
-        self.main_plot.plot(
-            np.array(coverage["pos"]),
-            np.array(coverage["cov"]),
-            color=self.coverage_color,
-            linewidth="0.5",
-        )
-        # save and close
-        self.figure.savefig(
-            f"{self.output_directory}/{self.file_prefix}-{current_chromosome}.png",
-            dpi=300,
-        )
-        self.logger.info(
-            f"Plot saved: {self.file_prefix}-{current_chromosome}.png"
-        )
-        self.figure.clf()
-
-
-class CNVPlot:
-    def __init__(self, as_dev: bool = False):
-        self.logger = logger.setup_log(__name__, as_dev)
-        # the plot
-        self.figure = plot_engine.figure(figsize=(8, 4))
-        gs = gridspec.GridSpec(2, 1, height_ratios=[5, 1])
-        self.main_plot = plot_engine.subplot(gs[0])
-        self.candidates_plot = plot_engine.subplot(gs[1])
-        self.candidates_plot.axes.get_yaxis().set_visible(False)
-        # colors
-        self.coverage_color = "#67a9cf"
-        self.cnv_color = {"DUP": "#313695", "DEL": "#b2182b"}
-        # legends
-        self.main = ""
-        self.x_axis = ""
-        self.y_axis = ""
-        self.axis_ylim = {"bottom": 0, "top": 6}
-        self.file_prefix = "test"
-        self.output_directory = "./"
-
-    def plot_coverage_cnv(
-        self,
-        current_chromosome: str = "",
-        stats=None,
-        coverage=None,
-        cnv_cand_list=None,
-        bounds=None,
-    ) -> None:
-        if stats is None or coverage is None:
-            self.logger.error("bot parameters are needed")
-        self.logger.debug("plotting coverage + CNV")
-        # main plot
-        self.main_plot.plot(
-            np.array(coverage["pos"]),
-            np.array(coverage["cov"]),
-            color=self.coverage_color,
-            linewidth="0.5",
-        )
-        self.main_plot.axes.set_ylim(
-            bottom=self.axis_ylim["bottom"], top=self.axis_ylim["top"]
-        )
-        start = coverage["pos"][0]
-        end = coverage["pos"][-1]
-        self.candidates_plot.plot(
-            np.array([start, end]), np.array([0, 0]), linewidth="0", color="#ffffff"
-        )
-        # add CNV candidates
-        self.logger.info(f"CNVs in chromosome: {current_chromosome}")
-        if cnv_cand_list is not None:
-            for cnv in cnv_cand_list:
-                start = cnv.start
-                end = cnv.end
-                cnv_color = self.cnv_color[cnv.type]
-                self.candidates_plot.plot(
-                    np.array([start, end]),
-                    np.array([0, 0]),
-                    linewidth="5",
-                    color=cnv_color,
-                )
-        # save and close
-        self.main_plot.plot(
-            np.array([1, stats.chromosome_len]),
-            np.array([stats.average, stats.average]),
-            linewidth="1",
-            color="#000000",
-        )
-        if bounds is not None:
-            [upperb, lowerb] = bounds if len(bounds) == 2 else [np.NaN, np.NaN]
-            self.main_plot.plot(
-                np.array([1, stats.chromosome_len]),
-                np.array([lowerb, lowerb]),
-                linewidth="1",
-                color="#dd3497",
-            )
-            self.main_plot.plot(
-                np.array([1, stats.chromosome_len]),
-                np.array([upperb, upperb]),
-                linewidth="1",
-                color="#dd3497",
-            )
-        self.figure.suptitle(f"{self.file_prefix} chromosome: {current_chromosome}")
-        self.figure.savefig(
-            f"{self.output_directory}/img/{self.file_prefix}_plot_cnv_{current_chromosome}.png",
-            dpi=300,
-        )
-        self.logger.info(
-            f"Plot saved: img/{self.file_prefix}_plot_cnv_{current_chromosome}.png"
-        )
-        self.figure.clf()
-
-
-import logging
-from spectre.util import logger
-import matplotlib.pyplot as plot_engine
-from matplotlib import gridspec
-from matplotlib.colors import LinearSegmentedColormap
-import numpy as np
-from typing import Optional
 import os
 
 class CoveragePlot:
@@ -302,7 +165,7 @@ class GenomeCNVPlot:
         self.output_directory = "./"
 
     def _smooth_same_len_safe(self, cov: np.ndarray, step: float) -> np.ndarray:
-        """~500 kb moving average, robust, same length as input."""
+        """~1000 kb moving average, robust, same length as input."""
         n = cov.size
         if n <= 3:
             return cov
@@ -378,9 +241,10 @@ class GenomeCNVPlot:
         window_cov = np.concatenate(window_cov)
 
         # Scatter (rasterized so points don't vanish at high DPI)
+        colors = np.where(window_cov > 2, "#1A35FF", "#FF1A34")  # red if >2, blue otherwise
         scatter = self.main_plot.scatter(
             all_pos, window_cov,
-            c=window_cov, cmap=self.ploidy_cmap, vmin=0, vmax=4,
+            c=colors,
             s=4.0, marker='o', edgecolors='none', linewidths=0,
             rasterized=True, zorder=2
         )
@@ -399,14 +263,7 @@ class GenomeCNVPlot:
         # Optional baseline & bounds
         if baseline is not None:
             self.main_plot.plot([0, genome_end], [baseline, baseline],
-                                linewidth=2.0, color="#3659FF", zorder=3, solid_capstyle="butt")
-        if bounds is not None and len(bounds) == 2:
-            lowerb, upperb = bounds[0], bounds[1]
-            self.main_plot.plot([0, genome_end], [lowerb, lowerb],
-                                linewidth=1.4, color="#EB4444", zorder=3)
-            self.main_plot.plot([0, genome_end], [upperb, upperb],
-                                linewidth=1.4, color="#EB4444", zorder=3)
-
+                                linewidth=1.4, color="#303030", zorder=3, solid_capstyle="butt")
         # Per-chromosome mean lines
         offset = 0
         for chrom in chromosomes:   
@@ -414,7 +271,7 @@ class GenomeCNVPlot:
             chr_mean = chr_means.get(chrom, np.nan)
             if length > 0 and np.isfinite(chr_mean):
                 self.main_plot.plot([offset, offset + length], [chr_mean, chr_mean],
-                                    linewidth=4.8, color="#585858", zorder=4, solid_capstyle="butt")
+                                    linewidth=5.5, color="#585858", zorder=4, solid_capstyle="butt")
             offset += length
 
         # Chromosome boundaries
@@ -436,13 +293,6 @@ class GenomeCNVPlot:
         # Remove the top axis (we're not using secondary_xaxis anymore)
         self.main_plot.tick_params(axis='x', which='both', top=False, labeltop=False)
 
-        # Colorbar
-        cbar = self.figure.colorbar(
-            scatter, ax=self.main_plot, label="Aneuploidy",
-            ticks=[0, 1, 2, 3, 4], fraction=0.03, pad=0.01
-        )
-        cbar.ax.tick_params(labelsize=15)
-        cbar.set_label("Aneuploidy", fontsize=25)
 
         self.main_plot.set_ylabel("Aneuploidy", fontsize=25)
         self.main_plot.tick_params(axis="y", labelsize=20)
