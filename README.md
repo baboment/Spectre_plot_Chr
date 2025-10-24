@@ -7,7 +7,8 @@ Spectre is designed to detect large CNVs (>100kb) in a couple of minutes dependi
 To calculate CNVs Spectre uses primarily the coverage (Read depth) data. 
 However, it can also use SNV data to detect loss of heterozygosity (LoH) regions.
 Additionally, Spectre can use the breakpoint (SNF) data from Sniffles to improve the CNV calling. However, it has to be converted to the SNFJ format using [snf2json](https://github.com/philippesanio/snf2json).
-
+# This version is intended solely for generating genome visualization plots.
+# It does not include or perform any technical steps related to structural variant (SV) calling.
 
 The CNV output of Spectre is stored in three files, VCF, BED and .SPC which can be used in the population mode.
 
