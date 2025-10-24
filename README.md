@@ -29,6 +29,35 @@ python3 -m build
 pip install dist/spectre_cnv-<VERSION>.tar.gz # replace <VERSION> with e.g. 0.2.0
 ```
 
+### Install this fork (`baboment/Spectre_plot_Chr`) with micromamba
+
+To work with this fork inside a micromamba-managed environment, mirror the tested
+dependency versions and then install the package from the repository.
+
+```bash
+# create and activate the environment with pinned dependencies
+micromamba create -n spectre python=3.10 \
+    pysam=0.22.0 numpy=1.24.3 pandas=2.0.1 matplotlib=3.7.1 scipy=1.10.1 -y
+micromamba activate spectre
+
+# clone the fork and install from the local source tree
+git clone https://github.com/baboment/Spectre_plot_Chr.git
+cd Spectre_plot_Chr
+pip install build
+python -m build
+pip install dist/spectre_cnv-<VERSION>.tar.gz  # replace <VERSION> with the file in dist/
+```
+
+If you prefer to let pip build directly from Git without creating a local
+artifact, run the following while the environment is active:
+
+```bash
+pip install "git+https://github.com/baboment/Spectre_plot_Chr.git"
+```
+
+Both approaches ensure that the code from this fork is installed instead of the
+PyPI release.
+
 Setup a conda environment for Spectre (copy and paste the following commands)
 ```bash
 conda create -n spectre python=3.10 pysam==0.22.0 numpy==1.24.3 pandas==2.0.1 matplotlib==3.7.1 scipy==1.10.1 -y
@@ -51,6 +80,7 @@ or install everything manually (check for package version in the requirements.tx
 | numpy| conda install -c anaconda numpy==1.24.3     |
 | scipy| conda install -c anaconda scipy==1.10.1     |
 | matplotlib| conda install -c anaconda matplotlib==3.7.1 |
+
 
 
 ## How to run
